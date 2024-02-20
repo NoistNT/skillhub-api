@@ -117,7 +117,11 @@ export class JobService {
     }
   }
 
-  async remove(id: string) {
+  async remove(id: string): Promise<{
+    status: number;
+    message: string;
+    data: Job | null;
+  }> {
     try {
       const job = await this.jobModel.findByIdAndDelete(id);
 
