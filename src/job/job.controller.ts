@@ -17,51 +17,26 @@ export class JobController {
 
   @Post()
   async create(@Body() createJobDto: CreateJobDto) {
-    const job = await this.jobService.create(createJobDto);
-    return {
-      status: job.status,
-      message: job.message,
-      data: job.data,
-    };
+    return await this.jobService.create(createJobDto);
   }
 
   @Get()
   async findAll() {
-    const jobs = await this.jobService.findAll();
-    return {
-      status: jobs.status,
-      message: jobs.message,
-      data: jobs.data,
-    };
+    return await this.jobService.findAll();
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    const job = await this.jobService.findOne(id);
-    return {
-      status: job.status,
-      message: job.message,
-      data: job.data,
-    };
+    return await this.jobService.findOne(id);
   }
 
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateJobDto: UpdateJobDto) {
-    const job = await this.jobService.update(id, updateJobDto);
-    return {
-      status: job.status,
-      message: job.message,
-      data: job.data,
-    };
+    return await this.jobService.update(id, updateJobDto);
   }
 
   @Delete(':id')
   async remove(@Param('id') id: string) {
-    const job = await this.jobService.remove(id);
-    return {
-      status: job.status,
-      message: job.message,
-      data: job.data,
-    };
+    return await this.jobService.remove(id);
   }
 }
