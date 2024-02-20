@@ -3,7 +3,7 @@ export class Job {
   location: string;
   description: string;
   category: string;
-  price: string;
+  price: number;
   image: [string];
   user: string;
 }
