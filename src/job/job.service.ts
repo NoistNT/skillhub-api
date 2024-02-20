@@ -17,18 +17,22 @@ export class JobService {
   }> {
     try {
       const newJob = await new this.jobModel(createJobDto).save();
-      return {
-        status: 201,
-        message: 'Job created successfully',
-        data: newJob,
-      };
-    } catch (error) {
-      console.error(error);
+
+      if (newJob) {
+        return {
+          status: 201,
+          message: 'Job created successfully',
+          data: newJob,
+        };
+      }
       return {
         status: 404,
         message: 'Job creation failed',
         data: null,
       };
+    } catch (error) {
+      console.error(error);
+      return serverError;
     }
   }
 
