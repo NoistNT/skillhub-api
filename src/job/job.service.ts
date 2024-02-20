@@ -44,7 +44,7 @@ export class JobService {
     try {
       const jobs = await this.jobModel.find().exec();
 
-      if (jobs) {
+      if (jobs.length) {
         return {
           status: 200,
           message: 'Jobs retrieved successfully',
