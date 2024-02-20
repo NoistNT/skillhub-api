@@ -1,6 +1,6 @@
 export class Job {
   title: string;
-  address: string;
+  location: string;
   description: string;
   category: string;
   price: string;
