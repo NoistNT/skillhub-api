@@ -6,16 +6,29 @@ import { Model } from 'mongoose';
 import { User } from 'src/schemas/user.schema';
 import { serverError } from 'src/lib/utils/errors';
 
+export interface IUserResponse {
+  status: number;
+  message: string;
+  data: User | Array<User>;
+}
 @Injectable()
 export class UserService {
   constructor(@InjectModel('User') private userModel: Model<User>) {}
 
-  async create(createUserDto: CreateUserDto): Promise<{
-    status: number;
-    message: string;
-    data: User | null;
-  }> {
+  async create(createUserDto: CreateUserDto): Promise<IUserResponse> {
     try {
+      const existingUser = await this.userModel.findOne({
+        email: createUserDto.email.trim(),
+      });
+
+      if (existingUser) {
+        return {
+          status: 409,
+          message: 'A user with the same email already exists',
+          data: null,
+        };
+      }
+
       const newUser = await new this.userModel(createUserDto).save();
 
       if (newUser) {
@@ -32,15 +45,11 @@ export class UserService {
       };
     } catch (error) {
       console.error(error);
-      return serverError;
+      return serverError as IUserResponse;
     }
   }
 
-  async findAll(): Promise<{
-    status: number;
-    message: string;
-    data: Array<User> | null;
-  }> {
+  async findAll(): Promise<IUserResponse> {
     try {
       const users = await this.userModel.find().exec();
 
@@ -58,15 +67,11 @@ export class UserService {
       };
     } catch (error) {
       console.error(error);
-      return serverError;
+      return serverError as IUserResponse;
     }
   }
 
-  async findOne(id: string): Promise<{
-    status: number;
-    message: string;
-    data: User | null;
-  }> {
+  async findOne(id: string): Promise<IUserResponse> {
     try {
       const user = await this.userModel.findById(id).exec();
 
@@ -84,18 +89,14 @@ export class UserService {
       };
     } catch (error) {
       console.error(error);
-      return serverError;
+      return serverError as IUserResponse;
     }
   }
 
   async update(
     id: string,
     updateUserDto: UpdateUserDto,
-  ): Promise<{
-    status: number;
-    message: string;
-    data: User | null;
-  }> {
+  ): Promise<IUserResponse> {
     try {
       const user = await this.userModel.findByIdAndUpdate(id, updateUserDto);
 
@@ -113,15 +114,11 @@ export class UserService {
       };
     } catch (error) {
       console.error(error);
-      return serverError;
+      return serverError as IUserResponse;
     }
   }
 
-  async remove(id: string): Promise<{
-    status: number;
-    message: string;
-    data: User | null;
-  }> {
+  async remove(id: string): Promise<IUserResponse> {
     try {
       const user = await this.userModel.findByIdAndDelete(id);
 
@@ -139,7 +136,7 @@ export class UserService {
       };
     } catch (error) {
       console.error(error);
-      return serverError;
+      return serverError as IUserResponse;
     }
   }
 }

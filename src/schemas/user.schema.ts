@@ -1,5 +1,4 @@
 import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
-// import mongoose from 'mongoose';
 
 @Schema({ timestamps: true })
 export class User {
@@ -9,8 +8,6 @@ export class User {
   lastName: string;
   @Prop({ required: true, trim: true, unique: true })
   email: string;
-  @Prop({ required: true })
-  phone: string;
   @Prop({
     required: true,
     default:
@@ -21,10 +18,6 @@ export class User {
   isActive: boolean;
   @Prop({ required: true, default: false })
   isAdmin: boolean;
-  @Prop({ required: true, default: 0 })
-  posts: number;
-  // @Prop({ required: true, ref: 'Invoice' })
-  // invoices: mongoose.Types.ObjectId;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

@@ -6,16 +6,30 @@ import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
 import { serverError } from 'src/lib/utils/errors';
 
+export interface IJobResponse {
+  status: number;
+  message: string;
+  data: Job | Array<Job>;
+}
+
 @Injectable()
 export class JobService {
   constructor(@InjectModel('Job') private jobModel: Model<Job>) {}
 
-  async create(createJobDto: CreateJobDto): Promise<{
-    status: number;
-    message: string;
-    data: Job | null;
-  }> {
+  async create(createJobDto: CreateJobDto): Promise<IJobResponse> {
     try {
+      const existingJob = await this.jobModel.findOne({
+        title: createJobDto.title.trim(),
+      });
+
+      if (existingJob) {
+        return {
+          status: 409,
+          message: 'A job with the same title already exists',
+          data: null,
+        };
+      }
+
       const newJob = await new this.jobModel(createJobDto).save();
 
       if (newJob) {
@@ -25,6 +39,7 @@ export class JobService {
           data: newJob,
         };
       }
+
       return {
         status: 404,
         message: 'Job creation failed',
@@ -32,15 +47,11 @@ export class JobService {
       };
     } catch (error) {
       console.error(error);
-      return serverError;
+      return serverError as IJobResponse;
     }
   }
 
-  async findAll(): Promise<{
-    status: number;
-    message: string;
-    data: Array<Job> | null;
-  }> {
+  async findAll(): Promise<IJobResponse> {
     try {
       const jobs = await this.jobModel.find().exec();
 
@@ -58,17 +69,13 @@ export class JobService {
       };
     } catch (error) {
       console.error(error);
-      return serverError;
+      return serverError as IJobResponse;
     }
   }
 
-  async findOne(id: string): Promise<{
-    status: number;
-    message: string;
-    data: Job | null;
-  }> {
+  async findOne(id: string): Promise<IJobResponse> {
     try {
-      const job = await this.jobModel.findById(id).exec();
+      const job = await this.jobModel.findById(id);
 
       if (job) {
         return {
@@ -84,18 +91,11 @@ export class JobService {
       };
     } catch (error) {
       console.error(error);
-      return serverError;
+      return serverError as IJobResponse;
     }
   }
 
-  async update(
-    id: string,
-    updateJobDto: UpdateJobDto,
-  ): Promise<{
-    status: number;
-    message: string;
-    data: Job | null;
-  }> {
+  async update(id: string, updateJobDto: UpdateJobDto): Promise<IJobResponse> {
     try {
       const job = await this.jobModel.findByIdAndUpdate(id, updateJobDto);
 
@@ -113,15 +113,11 @@ export class JobService {
       };
     } catch (error) {
       console.error(error);
-      return serverError;
+      return serverError as IJobResponse;
     }
   }
 
-  async remove(id: string): Promise<{
-    status: number;
-    message: string;
-    data: Job | null;
-  }> {
+  async remove(id: string): Promise<IJobResponse> {
     try {
       const job = await this.jobModel.findByIdAndDelete(id);
 
@@ -139,7 +135,7 @@ export class JobService {
       };
     } catch (error) {
       console.error(error);
-      return serverError;
+      return serverError as IJobResponse;
     }
   }
 }

@@ -8,4 +8,5 @@ export class UpdateJobDto extends PartialType(CreateJobDto) {
   public category: string;
   public price: number;
   public image: [string];
+  public user: string;
 }
