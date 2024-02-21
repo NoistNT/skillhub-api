@@ -5,5 +5,4 @@ export class CreateUserDto {
   public image: string;
   public isActive: boolean;
   public isAdmin: boolean;
-  public jobs: string;
 }
