@@ -4,138 +4,84 @@ import { Model } from 'mongoose';
 import { Job } from 'src/schemas/job.schema';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
-import { serverError } from 'src/lib/utils/errors';
-
-export interface IJobResponse {
-  status: number;
-  message: string;
-  data: Job | Array<Job>;
-}
+import { sanitizedString } from '../lib/utils';
 
 @Injectable()
 export class JobService {
-  constructor(@InjectModel('Job') private jobModel: Model<Job>) {}
+  constructor(@InjectModel('Job') private readonly jobModel: Model<Job>) {}
 
-  async create(createJobDto: CreateJobDto): Promise<IJobResponse> {
+  async create(createJobDto: CreateJobDto): Promise<Job> {
+    const title = sanitizedString(createJobDto.title);
+
     try {
-      const existingJob = await this.jobModel.findOne({
-        title: createJobDto.title.trim(),
-      });
+      const existingJob = await this.jobModel.findOne({ title });
 
       if (existingJob) {
-        return {
-          status: 409,
-          message: 'A job with the same title already exists',
-          data: null,
-        };
+        throw new Error('Job already exists');
       }
 
-      const newJob = await new this.jobModel(createJobDto).save();
+      const newJob = new this.jobModel(createJobDto);
+      await newJob.save();
 
-      if (newJob) {
-        return {
-          status: 201,
-          message: 'Job created successfully',
-          data: newJob,
-        };
-      }
-
-      return {
-        status: 404,
-        message: 'Job creation failed',
-        data: null,
-      };
+      return newJob;
     } catch (error) {
       console.error(error);
-      return serverError as IJobResponse;
+      const typedError = error as Error;
+      throw new Error(`Failed to create job: ${typedError.message}`);
     }
   }
 
-  async findAll(): Promise<IJobResponse> {
+  async findAll(): Promise<Job[]> {
     try {
-      const jobs = await this.jobModel.find().exec();
-
-      if (jobs.length) {
-        return {
-          status: 200,
-          message: 'Jobs retrieved successfully',
-          data: jobs,
-        };
-      }
-      return {
-        status: 404,
-        message: 'Jobs retrieval failed',
-        data: null,
-      };
+      return await this.jobModel.find().select('-__v -createdAt -updatedAt');
     } catch (error) {
-      console.error(error);
-      return serverError as IJobResponse;
+      const typedError = error as Error;
+      throw new Error(`Failed to retrieve jobs: ${typedError.message}`);
     }
   }
 
-  async findOne(id: string): Promise<IJobResponse> {
+  async findOne(id: string): Promise<Job> {
     try {
       const job = await this.jobModel.findById(id);
 
-      if (job) {
-        return {
-          status: 200,
-          message: 'Job retrieved successfully',
-          data: job,
-        };
+      if (!job) {
+        throw new Error('Job not found');
       }
-      return {
-        status: 404,
-        message: 'Job not found',
-        data: null,
-      };
+
+      return job;
     } catch (error) {
-      console.error(error);
-      return serverError as IJobResponse;
+      const typedError = error as Error;
+      throw new Error(`Failed to retrieve job: ${typedError.message}`);
     }
   }
 
-  async update(id: string, updateJobDto: UpdateJobDto): Promise<IJobResponse> {
+  async update(id: string, updateJobDto: UpdateJobDto): Promise<Job> {
     try {
       const job = await this.jobModel.findByIdAndUpdate(id, updateJobDto);
 
-      if (job) {
-        return {
-          status: 200,
-          message: 'Job updated successfully',
-          data: job,
-        };
+      if (!job) {
+        throw new Error('Job not found');
       }
-      return {
-        status: 404,
-        message: 'Job update failed',
-        data: null,
-      };
+
+      return job;
     } catch (error) {
-      console.error(error);
-      return serverError as IJobResponse;
+      const typedError = error as Error;
+      throw new Error(`Failed to update job: ${typedError.message}`);
     }
   }
 
-  async remove(id: string): Promise<IJobResponse> {
+  async remove(id: string): Promise<Job> {
     try {
-      const job = await this.jobModel.findByIdAndDelete(id);
+      const removed = await this.jobModel.findByIdAndDelete(id);
 
-      if (job) {
-        return {
-          status: 200,
-          message: 'Job deleted successfully',
-          data: job,
-        };
+      if (!removed) {
+        throw new Error('Job not found');
       }
-      return {
-        status: 404,
-        message: 'Job deletion failed',
-        data: null,
-      };
+
+      return removed;
     } catch (error) {
-      console.error(error);
-      return serverError as IJobResponse;
+      const typedError = error as Error;
+      throw new Error(`Failed to remove job: ${typedError.message}`);
     }
   }
 }
