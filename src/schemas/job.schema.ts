@@ -1,5 +1,4 @@
 import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
-import mongoose from 'mongoose';
 
 @Schema({ timestamps: true })
 export class Job {
@@ -21,7 +20,7 @@ export class Job {
   })
   image!: string;
   @Prop({ required: true, ref: 'User' })
-  user_id!: mongoose.Types.ObjectId;
+  user_id!: string;
 }
 
 export const JobSchema = SchemaFactory.createForClass(Job);
