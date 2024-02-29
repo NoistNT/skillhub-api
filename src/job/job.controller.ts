@@ -16,27 +16,27 @@ export class JobController {
   constructor(private readonly jobService: JobService) {}
 
   @Post()
-  async create(@Body() createJobDto: CreateJobDto) {
-    return await this.jobService.create(createJobDto);
+  create(@Body() createJobDto: CreateJobDto) {
+    return this.jobService.create(createJobDto);
   }
 
   @Get()
-  async findAll() {
-    return await this.jobService.findAll();
+  findAll() {
+    return this.jobService.findAll();
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    return await this.jobService.findOne(id);
+  findOne(@Param('id') id: string) {
+    return this.jobService.findOne(id);
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateJobDto: UpdateJobDto) {
-    return await this.jobService.update(id, updateJobDto);
+  update(@Param('id') id: string, @Body() updateJobDto: UpdateJobDto) {
+    return this.jobService.update(id, updateJobDto);
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string) {
-    return await this.jobService.remove(id);
+  remove(@Param('id') id: string) {
+    return this.jobService.remove(id);
   }
 }

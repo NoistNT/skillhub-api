@@ -3,9 +3,9 @@ import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
 @Schema({ timestamps: true })
 export class Review {
   @Prop({ required: true })
-  score: number;
+  score!: number;
   @Prop({ required: true })
-  message: string;
+  message!: string;
 }
 
 export const ReviewsSchema = SchemaFactory.createForClass(Review);

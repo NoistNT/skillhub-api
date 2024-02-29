@@ -4,139 +4,82 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from 'src/schemas/user.schema';
-import { serverError } from 'src/lib/utils/errors';
+import { sanitizedString } from '@/lib/utils';
 
-export interface IUserResponse {
-  status: number;
-  message: string;
-  data: User | Array<User>;
-}
 @Injectable()
 export class UserService {
   constructor(@InjectModel('User') private userModel: Model<User>) {}
 
-  async create(createUserDto: CreateUserDto): Promise<IUserResponse> {
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    const email = sanitizedString(createUserDto.email);
+
     try {
-      const existingUser = await this.userModel.findOne({
-        email: createUserDto.email.trim(),
-      });
+      const existingUser = await this.userModel.findOne({ email });
 
       if (existingUser) {
-        return {
-          status: 409,
-          message: 'A user with the same email already exists',
-          data: null,
-        };
+        throw new Error('A user with the same email already exists');
       }
 
-      const newUser = await new this.userModel(createUserDto).save();
+      const newUser = new this.userModel(createUserDto);
+      await newUser.save();
 
-      if (newUser) {
-        return {
-          status: 201,
-          message: 'User created successfully',
-          data: newUser,
-        };
-      }
-      return {
-        status: 404,
-        message: 'User creation failed',
-        data: null,
-      };
+      return newUser;
     } catch (error) {
-      console.error(error);
-      return serverError as IUserResponse;
+      const typedError = error as Error;
+      throw new Error(`Failed to create user: ${typedError.message}`);
     }
   }
 
-  async findAll(): Promise<IUserResponse> {
+  async findAll(): Promise<User[]> {
     try {
-      const users = await this.userModel.find().exec();
-
-      if (users.length) {
-        return {
-          status: 200,
-          message: 'Users retrieved successfully',
-          data: users,
-        };
-      }
-      return {
-        status: 404,
-        message: 'Users retrieval failed',
-        data: null,
-      };
+      return await this.userModel.find().select('-__v -createdAt -updatedAt');
     } catch (error) {
-      console.error(error);
-      return serverError as IUserResponse;
+      const typedError = error as Error;
+      throw new Error(`Failed to retrieve users: ${typedError.message}`);
     }
   }
 
-  async findOne(id: string): Promise<IUserResponse> {
+  async findOne(id: string): Promise<User> {
     try {
-      const user = await this.userModel.findById(id).exec();
+      const user = await this.userModel.findById(id);
 
-      if (user) {
-        return {
-          status: 200,
-          message: 'User retrieved successfully',
-          data: user,
-        };
+      if (!user) {
+        throw new Error('User not found');
       }
-      return {
-        status: 404,
-        message: 'User not found',
-        data: null,
-      };
+      return user;
     } catch (error) {
-      console.error(error);
-      return serverError as IUserResponse;
+      const typedError = error as Error;
+      throw new Error(`Failed to retrieve user: ${typedError.message}`);
     }
   }
 
-  async update(
-    id: string,
-    updateUserDto: UpdateUserDto,
-  ): Promise<IUserResponse> {
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     try {
       const user = await this.userModel.findByIdAndUpdate(id, updateUserDto);
 
-      if (user) {
-        return {
-          status: 200,
-          message: 'User updated successfully',
-          data: user,
-        };
+      if (!user) {
+        throw new Error('User not found');
       }
-      return {
-        status: 404,
-        message: 'User update failed',
-        data: null,
-      };
+
+      return user;
     } catch (error) {
-      console.error(error);
-      return serverError as IUserResponse;
+      const typedError = error as Error;
+      throw new Error(`Failed to update user: ${typedError.message}`);
     }
   }
 
-  async remove(id: string): Promise<IUserResponse> {
+  async remove(id: string): Promise<User> {
     try {
-      const user = await this.userModel.findByIdAndDelete(id);
+      const removed = await this.userModel.findByIdAndDelete(id);
 
-      if (user) {
-        return {
-          status: 200,
-          message: 'User deleted successfully',
-          data: user,
-        };
+      if (!removed) {
+        throw new Error('User not found');
       }
-      return {
-        status: 404,
-        message: 'User deletion failed',
-        data: null,
-      };
+
+      return removed;
     } catch (error) {
-      console.error(error);
-      return serverError as IUserResponse;
+      const typedError = error as Error;
+      throw new Error(`Failed to remove user: ${typedError.message}`);
     }
   }
 }

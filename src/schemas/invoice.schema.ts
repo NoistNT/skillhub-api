@@ -4,17 +4,17 @@ import mongoose from 'mongoose';
 @Schema({ timestamps: true })
 export class Invoice {
   @Prop({ required: true })
-  plan: string;
+  plan!: string;
   @Prop({ required: true, default: 0 })
-  price: number;
-  @Prop({ required: true, ref: 'User' })
-  user: mongoose.Types.ObjectId;
+  price!: number;
   @Prop({ required: true })
-  status: string;
-  @Prop({ required: true })
-  purchase_id: string;
+  status!: string;
   @Prop({ required: true, default: false })
-  suscription: boolean;
+  suscription!: boolean;
+  @Prop({ required: true })
+  purchase_id!: string;
+  @Prop({ required: true, ref: 'User' })
+  user_id!: mongoose.Types.ObjectId;
 }
 
 export const InvoiceSchema = SchemaFactory.createForClass(Invoice);
