@@ -1,10 +1,10 @@
+import { sanitizedString } from '@/lib/utils';
+import { Job } from '@/schemas/job.schema';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Job } from 'src/schemas/job.schema';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
-import { sanitizedString } from '../lib/utils';
 
 @Injectable()
 export class JobService {
@@ -26,8 +26,8 @@ export class JobService {
       return newJob;
     } catch (error) {
       console.error(error);
-      const typedError = error as Error;
-      throw new Error(`Failed to create job: ${typedError.message}`);
+      const err = error as Error;
+      throw new Error(`Failed to create job: ${err.message}`);
     }
   }
 
@@ -35,8 +35,8 @@ export class JobService {
     try {
       return await this.jobModel.find().select('-__v -createdAt -updatedAt');
     } catch (error) {
-      const typedError = error as Error;
-      throw new Error(`Failed to retrieve jobs: ${typedError.message}`);
+      const err = error as Error;
+      throw new Error(`Failed to retrieve jobs: ${err.message}`);
     }
   }
 
@@ -50,8 +50,8 @@ export class JobService {
 
       return job;
     } catch (error) {
-      const typedError = error as Error;
-      throw new Error(`Failed to retrieve job: ${typedError.message}`);
+      const err = error as Error;
+      throw new Error(`Failed to retrieve job: ${err.message}`);
     }
   }
 
@@ -65,8 +65,8 @@ export class JobService {
 
       return job;
     } catch (error) {
-      const typedError = error as Error;
-      throw new Error(`Failed to update job: ${typedError.message}`);
+      const err = error as Error;
+      throw new Error(`Failed to update job: ${err.message}`);
     }
   }
 
@@ -80,8 +80,8 @@ export class JobService {
 
       return removed;
     } catch (error) {
-      const typedError = error as Error;
-      throw new Error(`Failed to remove job: ${typedError.message}`);
+      const err = error as Error;
+      throw new Error(`Failed to remove job: ${err.message}`);
     }
   }
 }

@@ -1,10 +1,10 @@
+import { sanitizedString } from '@/lib/utils';
+import { User } from '@/schemas/user.schema';
 import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { User } from 'src/schemas/user.schema';
-import { sanitizedString } from '@/lib/utils';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
@@ -16,17 +16,16 @@ export class UserService {
     try {
       const existingUser = await this.userModel.findOne({ email });
 
-      if (existingUser) {
+      if (existingUser)
         throw new Error('A user with the same email already exists');
-      }
 
       const newUser = new this.userModel(createUserDto);
       await newUser.save();
 
       return newUser;
     } catch (error) {
-      const typedError = error as Error;
-      throw new Error(`Failed to create user: ${typedError.message}`);
+      const err = error as Error;
+      throw new Error(`Failed to create user: ${err.message}`);
     }
   }
 
@@ -34,22 +33,23 @@ export class UserService {
     try {
       return await this.userModel.find().select('-__v -createdAt -updatedAt');
     } catch (error) {
-      const typedError = error as Error;
-      throw new Error(`Failed to retrieve users: ${typedError.message}`);
+      const err = error as Error;
+      throw new Error(`Failed to retrieve users: ${err.message}`);
     }
   }
 
   async findOne(id: string): Promise<User> {
     try {
-      const user = await this.userModel.findById(id);
+      const user = await this.userModel
+        .findById(id)
+        .select('-__v -createdAt -updatedAt');
 
-      if (!user) {
-        throw new Error('User not found');
-      }
+      if (!user) throw new Error('User not found');
+
       return user;
     } catch (error) {
-      const typedError = error as Error;
-      throw new Error(`Failed to retrieve user: ${typedError.message}`);
+      const err = error as Error;
+      throw new Error(`Failed to retrieve user: ${err.message}`);
     }
   }
 
@@ -57,14 +57,12 @@ export class UserService {
     try {
       const user = await this.userModel.findByIdAndUpdate(id, updateUserDto);
 
-      if (!user) {
-        throw new Error('User not found');
-      }
+      if (!user) throw new Error('User not found');
 
       return user;
     } catch (error) {
-      const typedError = error as Error;
-      throw new Error(`Failed to update user: ${typedError.message}`);
+      const err = error as Error;
+      throw new Error(`Failed to update user: ${err.message}`);
     }
   }
 
@@ -72,14 +70,12 @@ export class UserService {
     try {
       const removed = await this.userModel.findByIdAndDelete(id);
 
-      if (!removed) {
-        throw new Error('User not found');
-      }
+      if (!removed) throw new Error('User not found');
 
       return removed;
     } catch (error) {
-      const typedError = error as Error;
-      throw new Error(`Failed to remove user: ${typedError.message}`);
+      const err = error as Error;
+      throw new Error(`Failed to remove user: ${err.message}`);
     }
   }
 }
