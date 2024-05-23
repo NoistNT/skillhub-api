@@ -16,8 +16,7 @@ export class UserService {
     try {
       const existingUser = await this.userModel.findOne({ email });
 
-      if (existingUser)
-        throw new Error('A user with the same email already exists');
+      if (existingUser) throw new Error('Email already registered');
 
       const newUser = new this.userModel(createUserDto);
       await newUser.save();
@@ -55,7 +54,9 @@ export class UserService {
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     try {
-      const user = await this.userModel.findByIdAndUpdate(id, updateUserDto);
+      const user = await this.userModel.findByIdAndUpdate(id, updateUserDto, {
+        new: true,
+      });
 
       if (!user) throw new Error('User not found');
 
