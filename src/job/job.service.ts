@@ -1,31 +1,19 @@
-import { sanitizedString } from '@/lib/utils';
-import { Job } from '@/schemas/job.schema';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
+import { Job } from './entities/job.entity';
 
 @Injectable()
 export class JobService {
-  constructor(@InjectModel('Job') private readonly jobModel: Model<Job>) {}
+  constructor(@InjectModel(Job.name) private readonly jobModel: Model<Job>) {}
 
   async create(createJobDto: CreateJobDto): Promise<Job> {
-    const title = sanitizedString(createJobDto.title);
-
     try {
-      const existingJob = await this.jobModel.findOne({ title });
-
-      if (existingJob) {
-        throw new Error('Job already exists');
-      }
-
       const newJob = new this.jobModel(createJobDto);
-      await newJob.save();
-
-      return newJob;
+      return await newJob.save();
     } catch (error) {
-      console.error(error);
       const err = error as Error;
       throw new Error(`Failed to create job: ${err.message}`);
     }
@@ -42,11 +30,12 @@ export class JobService {
 
   async findOne(id: string): Promise<Job> {
     try {
-      const job = await this.jobModel.findById(id);
+      const job = await this.jobModel
+        .findById(id)
+        .select('-__v -createdAt -updatedAt')
+        .populate('user_id');
 
-      if (!job) {
-        throw new Error('Job not found');
-      }
+      if (!job) throw new Error('Job not found');
 
       return job;
     } catch (error) {
@@ -57,11 +46,11 @@ export class JobService {
 
   async update(id: string, updateJobDto: UpdateJobDto): Promise<Job> {
     try {
-      const job = await this.jobModel.findByIdAndUpdate(id, updateJobDto);
+      const job = await this.jobModel.findByIdAndUpdate(id, updateJobDto, {
+        new: true,
+      });
 
-      if (!job) {
-        throw new Error('Job not found');
-      }
+      if (!job) throw new Error('Job not found');
 
       return job;
     } catch (error) {
@@ -74,9 +63,7 @@ export class JobService {
     try {
       const removed = await this.jobModel.findByIdAndDelete(id);
 
-      if (!removed) {
-        throw new Error('Job not found');
-      }
+      if (!removed) throw new Error('Job not found');
 
       return removed;
     } catch (error) {
