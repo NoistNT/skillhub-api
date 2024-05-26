@@ -1,14 +1,16 @@
 import { sanitizedString } from '@/lib/utils';
-import { User } from '@/schemas/user.schema';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { User } from './entities/user.entity';
 
 @Injectable()
 export class UserService {
-  constructor(@InjectModel('User') private userModel: Model<User>) {}
+  constructor(
+    @InjectModel(User.name) private readonly userModel: Model<User>,
+  ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     const email = sanitizedString(createUserDto.email);
@@ -19,9 +21,7 @@ export class UserService {
       if (existingUser) throw new Error('Email already registered');
 
       const newUser = new this.userModel(createUserDto);
-      await newUser.save();
-
-      return newUser;
+      return await newUser.save();
     } catch (error) {
       const err = error as Error;
       throw new Error(`Failed to create user: ${err.message}`);
@@ -39,9 +39,7 @@ export class UserService {
 
   async findOne(id: string): Promise<User> {
     try {
-      const user = await this.userModel
-        .findById(id)
-        .select('-__v -createdAt -updatedAt');
+      const user = await this.userModel.findById(id);
 
       if (!user) throw new Error('User not found');
 
